@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cosmic Calculator</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Arial', sans-serif;
+    }
+
+    body {
+      background-color: #0a0a2a;
+      color: #fff;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Stars background */
+    .stars {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    /* Container with all pages */
+    .app-container {
+      width: 100%;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    /* Page styles */
+    .page {
+      width: 100%;
+      max-width: 500px;
+      border-radius: 20px;
+      padding: 30px;
+      background: rgba(25, 25, 65, 0.8);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 32px rgba(0, 0, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      display: none;
+      animation: fadeIn 0.5s ease-in-out;
+    }
+
+    .active {
+      display: block;
+    }
+
+    /* Intro page */
+    #intro-page {
+      text-align: center;
+    }
+
+    .title {
+      font-size: 36px;
+      margin-bottom: 20px;
+      color: #8a2be2;
+      text-shadow: 0 0 10px rgba(138, 43, 226, 0.5);
+    }
+
+    .subtitle {
+      font-size: 18px;
+      margin-bottom: 40px;
+      color: #add8e6;
+    }
+
+    .planet {
+      width: 150px;
+      height: 150px;
+      background: linear-gradient(45deg, #4a2c8a, #8a2be2);
+      border-radius: 50%;
+      margin: 0 auto 30px;
+      position: relative;
+      box-shadow: 0 0 30px #8a2be2;
+    }
+
+    .planet::before {
+      content: '';
+      position: absolute;
+      width: 180px;
+      height: 30px;
+      background: rgba(138, 43, 226, 0.2);
+      border-radius: 50%;
+      top: 60px;
+      left: -15px;
+      transform: rotate(-20deg);
+    }
+
+    .planet::after {
+      content: '';
+      position: absolute;
+      width: 40px;
+      height: 40px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      top: 30px;
+      left: 30px;
+    }
+
+    .enter-btn {
+      background: linear-gradient(45deg, #4a2c8a, #8a2be2);
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      font-size: 18px;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 20px;
+    }
+
+    .enter-btn:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 20px rgba(138, 43, 226, 0.3);
+    }
+
+    /* Calculator page */
+    #calculator-page {
+      position: relative;
+    }
+
+    .nav-buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .nav-btn {
+      background: rgba(138, 43, 226, 0.3);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 8px 15px;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .nav-btn:hover {
+      background: rgba(138, 43, 226, 0.5);
+    }
+
+    .display {
+      width: 100%;
+      background: rgba(10, 10, 30, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      text-align: right;
+      font-size: 2.5em;
+      color: #fff;
+      height: 80px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .display span {
+      position: absolute;
+      right: 20px;
+      bottom: 20px;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 15px;
+    }
+
+    .btn {
+      padding: 20px 5px;
+      font-size: 20px;
+      border-radius: 10px;
+      border: none;
+      background: rgba(40, 40, 100, 0.5);
+      color: white;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      text-align: center;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn:hover {
+      background: rgba(60, 60, 150, 0.7);
+      transform: translateY(-2px);
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .btn.operator {
+      background: rgba(138, 43, 226, 0.6);
+    }
+
+    .btn.equals {
+      background: rgba(0, 191, 255, 0.7);
+    }
+
+    .btn.clear {
+      background: rgba(255, 69, 0, 0.7);
+    }
+
+    /* History page */
+    #history-page {
+      max-height: 600px;
+      overflow-y: auto;
+    }
+
+    .history-title {
+      font-size: 28px;
+      margin-bottom: 20px;
+      color: #8a2be2;
+    }
+
+    .history-list {
+      list-style: none;
+    }
+
+    .history-item {
+      background: rgba(40, 40, 100, 0.3);
+      padding: 15px;
+      margin-bottom: 10px;
+      border-radius: 10px;
+      border-left: 4px solid #8a2be2;
+    }
+
+    .calculation {
+      font-size: 18px;
+      margin-bottom: 5px;
+    }
+
+    .result {
+      font-size: 22px;
+      color: #add8e6;
+    }
+
+    .clear-history {
+      background: rgba(255, 69, 0, 0.5);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 20px;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: all 0.3s ease;
+    }
+
+    .clear-history:hover {
+      background: rgba(255, 69, 0, 0.7);
+    }
+
+    .empty-history {
+      text-align: center;
+      color: #add8e6;
+      padding: 40px 0;
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Responsive design */
+    @media screen and (max-width: 500px) {
+      .page {
+        padding: 20px;
+      }
+
+      .title {
+        font-size: 28px;
+      }
+
+      .buttons {
+        gap: 10px;
+      }
+
+      .btn {
+        padding: 15px 5px;
+        font-size: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="stars" id="stars"></div>
+  
+  <div class="app-container">
+    <!-- Intro Page -->
+    <div class="page active" id="intro-page">
+      <h1 class="title">Cosmic Calculator</h1>
+      <p class="subtitle">Journey through the mathematical universe</p>
+      <div class="planet"></div>
+      <p>Experience calculation like never before with this stellar mathematical tool.</p>
+      <button class="enter-btn" id="enter-btn">Begin Your Journey</button>
+    </div>
+
+    <!-- Calculator Page -->
+    <div class="page" id="calculator-page">
+      <div class="nav-buttons">
+        <button class="nav-btn" id="back-to-intro">Home</button>
+        <button class="nav-btn" id="view-history">History</button>
+      </div>
+      <div class="display">
+        <span id="display-value">0</span>
+      </div>
+      <div class="buttons">
+        <button class="btn clear" data-value="C">C</button>
+        <button class="btn" data-value="(">(</button>
+        <button class="btn" data-value=")">)</button>
+        <button class="btn operator" data-value="/">÷</button>
+        <button class="btn" data-value="7">7</button>
+        <button class="btn" data-value="8">8</button>
+        <button class="btn" data-value="9">9</button>
+        <button class="btn operator" data-value="*">×</button>
+        <button class="btn" data-value="4">4</button>
+        <button class="btn" data-value="5">5</button>
+        <button class="btn" data-value="6">6</button>
+        <button class="btn operator" data-value="-">−</button>
+        <button class="btn" data-value="1">1</button>
+        <button class="btn" data-value="2">2</button>
+        <button class="btn" data-value="3">3</button>
+        <button class="btn operator" data-value="+">+</button>
+        <button class="btn" data-value="0">0</button>
+        <button class="btn" data-value=".">.</button>
+        <button class="btn" data-value="DEL">⌫</button>
+        <button class="btn equals" data-value="=">=</button>
+      </div>
+    </div>
+
+    <!-- History Page -->
+    <div class="page" id="history-page">
+      <div class="nav-buttons">
+        <button class="nav-btn" id="back-to-calc">Back</button>
+      </div>
+      <h2 class="history-title">Calculation History</h2>
+      <div id="history-container">
+        <div class="empty-history" id="empty-history">
+          <p>No calculations yet. Your cosmic journey awaits!</p>
+        </div>
+        <ul class="history-list" id="history-list"></ul>
+      </div>
+      <button class="clear-history" id="clear-history">Clear History</button>
+    </div>
+  </div>
+
+  <script>
+    // DOM Elements
+    const introPage = document.getElementById('intro-page');
+    const calculatorPage = document.getElementById('calculator-page');
+    const historyPage = document.getElementById('history-page');
+    const enterBtn = document.getElementById('enter-btn');
+    const backToIntroBtn = document.getElementById('back-to-intro');
+    const viewHistoryBtn = document.getElementById('view-history');
+    const backToCalcBtn = document.getElementById('back-to-calc');
+    const displayValue = document.getElementById('display-value');
+    const buttons = document.querySelectorAll('.btn');
+    const historyList = document.getElementById('history-list');
+    const emptyHistory = document.getElementById('empty-history');
+    const clearHistoryBtn = document.getElementById('clear-history');
+    const starsContainer = document.getElementById('stars');
+
+    // Calculator variables
+    let currentValue = '0';
+    let calculationHistory = [];
+    let lastResult = null;
+
+    // Initial setup
+    loadHistory();
+    createStars();
+
+    // Page navigation
+    enterBtn.addEventListener('click', () => {
+      showPage(calculatorPage);
+    });
+
+    backToIntroBtn.addEventListener('click', () => {
+      showPage(introPage);
+    });
+
+    viewHistoryBtn.addEventListener('click', () => {
+      showPage(historyPage);
+      updateHistoryDisplay();
+    });
+
+    backToCalcBtn.addEventListener('click', () => {
+      showPage(calculatorPage);
+    });
+
+    // Button event listeners
+    buttons.forEach(button => {
+      button.addEventListener('click', () => {
+        const value = button.getAttribute('data-value');
+        handleButtonPress(value);
+      });
+    });
+
+    // Clear history button
+    clearHistoryBtn.addEventListener('click', () => {
+      calculationHistory = [];
+      saveHistory();
+      updateHistoryDisplay();
+    });
+
+    // Keyboard support
+    document.addEventListener('keydown', e => {
+      if (calculatorPage.classList.contains('active')) {
+        const key = e.key;
+        if (/[0-9\.\+\-\*\/\(\)]/.test(key)) {
+          handleButtonPress(key);
+        } else if (key === 'Enter') {
+          handleButtonPress('=');
+        } else if (key === 'Backspace') {
+          handleButtonPress('DEL');
+        } else if (key === 'Escape') {
+          handleButtonPress('C');
+        }
+      }
+    });
+
+    // Functions
+    function showPage(page) {
+      document.querySelectorAll('.page').forEach(p => {
+        p.classList.remove('active');
+      });
+      page.classList.add('active');
+    }
+
+    function updateDisplay() {
+      displayValue.textContent = currentValue;
+    }
+
+    function handleButtonPress(value) {
+      switch (value) {
+        case 'C':
+          currentValue = '0';
+          break;
+        case 'DEL':
+          if (currentValue.length === 1 || (currentValue.length === 2 && currentValue[0] === '-')) {
+            currentValue = '0';
+          } else {
+            currentValue = currentValue.slice(0, -1);
+          }
+          break;
+        case '=':
+          try {
+            const calculation = currentValue;
+            const result = eval(currentValue).toString();
+            currentValue = result;
+            
+            // Add to history
+            calculationHistory.unshift({
+              calculation: calculation,
+              result: result
+            });
+            saveHistory();
+            
+          } catch (error) {
+            currentValue = 'Error';
+            setTimeout(() => {
+              currentValue = '0';
+              updateDisplay();
+            }, 1500);
+          }
+          break;
+        default:
+          if (currentValue === '0' && value !== '.') {
+            currentValue = value;
+          } else {
+            // Prevent multiple operators in a row
+            const lastChar = currentValue.slice(-1);
+            if (/[\+\-\*\/]/.test(value) && /[\+\-\*\/]/.test(lastChar)) {
+              currentValue = currentValue.slice(0, -1) + value;
+            } else {
+              currentValue += value;
+            }
+          }
+          break;
+      }
+      updateDisplay();
+    }
+
+    function saveHistory() {
+      // Keep only the last 50 calculations
+      if (calculationHistory.length > 50) {
+        calculationHistory = calculationHistory.slice(0, 50);
+      }
+      localStorage.setItem('calculationHistory', JSON.stringify(calculationHistory));
+    }
+
+    function loadHistory() {
+      const savedHistory = localStorage.getItem('calculationHistory');
+      if (savedHistory) {
+        calculationHistory = JSON.parse(savedHistory);
+      }
+      updateHistoryDisplay();
+    }
+
+    function updateHistoryDisplay() {
+      historyList.innerHTML = '';
+      
+      if (calculationHistory.length === 0) {
+        emptyHistory.style.display = 'block';
+      } else {
+        emptyHistory.style.display = 'none';
+        
+        calculationHistory.forEach(item => {
+          const li = document.createElement('li');
+          li.className = 'history-item';
+          
+          const calculationDiv = document.createElement('div');
+          calculationDiv.className = 'calculation';
+          calculationDiv.textContent = item.calculation;
+          
+          const resultDiv = document.createElement('div');
+          resultDiv.className = 'result';
+          resultDiv.textContent = `= ${item.result}`;
+          
+          li.appendChild(calculationDiv);
+          li.appendChild(resultDiv);
+          
+          li.addEventListener('click', () => {
+            currentValue = item.result;
+            updateDisplay();
+            showPage(calculatorPage);
+          });
+          
+          historyList.appendChild(li);
+        });
+      }
+    }
+
+    function createStars() {
+      // Create animated starfield background
+      const starsCount = 200;
+      
+      for (let i = 0; i < starsCount; i++) {
+        const star = document.createElement('div');
+        const size = Math.random() * 2;
+        const opacity = Math.random() * 0.8 + 0.2;
+        
+        star.style.position = 'absolute';
+        star.style.width = `${size}px`;
+        star.style.height = `${size}px`;
+        star.style.backgroundColor = 'white';
+        star.style.borderRadius = '50%';
+        star.style.opacity = opacity;
+        star.style.top = `${Math.random() * 100}%`;
+        star.style.left = `${Math.random() * 100}%`;
+        star.style.animation = `twinkle ${Math.random() * 5 + 2}s infinite alternate`;
+        
+        starsContainer.appendChild(star);
+      }
+      
+      // Add some larger "planets"
+      for (let i = 0; i < 5; i++) {
+        const planet = document.createElement('div');
+        const size = Math.random() * 6 + 3;
+        
+        planet.style.position = 'absolute';
+        planet.style.width = `${size}px`;
+        planet.style.height = `${size}px`;
+        planet.style.background = `radial-gradient(circle at 30% 30%, rgb(${Math.random()*255}, ${Math.random()*255}, ${Math.random()*255}), rgb(${Math.random()*100}, ${Math.random()*100}, ${Math.random()*100}))`;
+        planet.style.borderRadius = '50%';
+        planet.style.top = `${Math.random() * 100}%`;
+        planet.style.left = `${Math.random() * 100}%`;
+        planet.style.boxShadow = '0 0 10px rgba(255,255,255,0.5)';
+        
+        starsContainer.appendChild(planet);
+      }
+      
+      // Add twinkling animation
+      const styleSheet = document.createElement('style');
+      styleSheet.innerHTML = `
+        @keyframes twinkle {
+          0% { opacity: ${Math.random() * 0.5 + 0.1}; }
+          100% { opacity: ${Math.random() * 0.5 + 0.5}; }
+        }
+      `;
+      document.head.appendChild(styleSheet);
+    }
+  </script>
+</body>
+</html>
